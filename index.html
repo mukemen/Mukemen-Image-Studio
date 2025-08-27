@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mukemen Image Studio</title>
-  <meta name="description" content="Text-to-Image & Edit Gambar via OpenRouter" />
+  <meta name="description" content="Text-to-Image & Edit Gambar" />
 
   <!-- Tailwind CDN + Inter font -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,9 +15,7 @@
       theme: {
         extend: {
           fontFamily: { inter: ['Inter', 'ui-sans-serif', 'system-ui'] },
-          colors: {
-            brand: { 400:'#22d3ee',500:'#06b6d4',600:'#0891b2' }
-          },
+          colors: { brand: { 400:'#22d3ee',500:'#06b6d4',600:'#0891b2' } },
           boxShadow: { glass: '0 8px 30px rgba(0,0,0,.35)' }
         }
       }
@@ -47,10 +45,9 @@
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center font-extrabold text-slate-900 shadow-lg">MK</div>
         <div>
           <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mukemen Image Studio</h1>
-          <p class="text-slate-400 text-sm md:text-[15px]">Text-to-Image & Edit Gambar • OpenRouter • Vercel</p>
+          <p class="text-slate-400 text-sm md:text-[15px]">Powered by <b>FABARO GROUP</b></p>
         </div>
       </div>
-
       <!-- Theme toggle -->
       <button id="themeBtn"
         class="text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 transition">
@@ -68,7 +65,6 @@
         <textarea id="prompt" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-brand-400/60"
           placeholder="Contoh: Espresso Fabaro Kopi, gelas kaca berembun, lighting dramatis, ultra realistis, 8K"></textarea>
 
-        <!-- Quick prompts -->
         <div class="flex flex-wrap gap-2 mt-3">
           <button class="qp px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-white/10">produk kopi premium, low-key lighting, studio background hitam, 8K</button>
           <button class="qp px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-white/10">logo Fabaro Kopi timbul, emboss gold, latar gelap elegan</button>
@@ -163,9 +159,7 @@
       <section class="glass rounded-2xl p-5 md:p-6 shadow-glass border border-white/10">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-lg font-semibold">Hasil</h2>
-          <div class="flex items-center gap-2">
-            <button id="clear" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">Bersihkan</button>
-          </div>
+          <button id="clear" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">Bersihkan</button>
         </div>
         <div id="loader" class="hidden py-8 grid place-items-center">
           <div class="w-12 h-12 border-4 border-white/20 border-t-brand-400 rounded-full animate-spin"></div>
@@ -236,15 +230,11 @@
         customWH.classList.remove('hidden');
         calcOut.innerHTML = `Output ~ <b>${round8(widthEl.value)}×${round8(heightEl.value)}</b>`;
         return;
-        }
+      }
       customWH.classList.add('hidden');
       const {a,b} = parseRatio(r);
       let w, h;
-      if (a>=b){ // landscape
-        w = L; h = Math.round(L * b / a);
-      } else {  // portrait
-        h = L; w = Math.round(L * a / b);
-      }
+      if (a>=b){ w = L; h = Math.round(L * b / a); } else { h = L; w = Math.round(L * a / b); }
       w = round8(w); h = round8(h);
       widthEl.value = w; heightEl.value = h;
       calcOut.innerHTML = `Output ~ <b>${w}×${h}</b> (rasio ${r})`;
@@ -258,7 +248,6 @@
     function setLoading(v){ loader.classList.toggle('hidden', !v); goBtn.disabled = v; goBtn.classList.toggle('opacity-60', v); }
 
     async function readAsDataURL(file) {
-      // resize ke max 1536px biar ringan
       const dataUrl = await new Promise((resolve, reject)=>{
         const r = new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file);
       });
