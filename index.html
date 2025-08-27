@@ -19,6 +19,7 @@
 <body>
   <div class="wrap">
     <h1>Mukemen Image Studio</h1>
+
     <div class="card">
       <label>Prompt (deskripsi gambar)</label>
       <textarea id="prompt" placeholder="Contoh: ‘Espresso Fabaro Kopi, lighting dramatis, 8K’"></textarea>
@@ -38,7 +39,7 @@
         <option value="stabilityai/stable-diffusion-3.5-medium">Stable Diffusion 3.5 Medium</option>
         <option value="openai/gpt-image-1">OpenAI GPT-Image-1</option>
       </select>
-      <div class="muted">Catatan: model gratis bisa gagal/limit. Jika error, coba model lain di atas.</div>
+      <div class="muted">Jika gagal, coba ganti model ke Stable Diffusion 3.5.</div>
 
       <label>Upload Gambar (opsional untuk edit)</label>
       <input id="file" type="file" accept="image/*" />
@@ -51,9 +52,7 @@
       <div class="preview" id="out"></div>
     </div>
 
-    <div class="footer">
-      © 2025 Mukemen.ai • Set environment <code>OPENROUTER_API_KEY</code> di Vercel
-    </div>
+    <div class="footer">© 2025 Mukemen.ai</div>
   </div>
 
   <script>
