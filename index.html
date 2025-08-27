@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Mukemen Image Studio</title>
 
   <!-- Deskripsi & Preview -->
@@ -18,12 +18,12 @@
   <meta name="twitter:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
   <meta name="twitter:image" content="/og-image.png" />
 
-  <!-- Icons / Manifest (PWA) -->
+  <!-- Icons / PWA -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#06b6d4" />
+  <meta name="theme-color" content="#0b1220" />
 
   <!-- Tailwind + Font -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -34,153 +34,188 @@
       theme: {
         extend: {
           fontFamily: { inter: ['Inter','ui-sans-serif','system-ui'] },
-          colors: { brand: { 400:'#22d3ee',500:'#06b6d4',600:'#0891b2' } },
-          boxShadow: { glass: '0 8px 30px rgba(0,0,0,.35)' }
+          colors: {
+            ink:   { 900:'#0b1220', 800:'#0f1729', 700:'#121b2f' }, /* elegant dark */
+            mint:  { 400:'#28e0cf', 500:'#1dd1c2', 600:'#11b5a9' }, /* accent */
+          },
+          dropShadow: { soft: '0 8px 30px rgba(0,0,0,.35)' }
         }
       }
     }
   </script>
   <style>
+    :root { color-scheme: dark; }
     body { font-family: Inter, system-ui, Arial, sans-serif; }
-    .glass { backdrop-filter: blur(12px); background: rgba(17,25,40,.6); }
-    .gradient-bg {
+    /* Elegant gradient background */
+    .bg-elegant {
       background:
-        radial-gradient(1200px 600px at -10% -20%, rgba(34,211,238,.25), transparent 60%),
-        radial-gradient(1000px 500px at 120% 10%, rgba(6,182,212,.25), transparent 55%),
-        linear-gradient(180deg,#0a0d12 0%,#0b0e14 60%,#0c1017 100%);
+        radial-gradient(900px 500px at -10% -20%, rgba(40,224,207,.12), transparent 60%),
+        radial-gradient(1000px 600px at 110% 10%, rgba(29,209,194,.10), transparent 55%),
+        linear-gradient(180deg,#0b1220 0%, #0f1729 60%, #121b2f 100%);
     }
-    .light .glass { background: rgba(255,255,255,.65); }
-    .light.gradient-bg {
-      background:
-        radial-gradient(900px 450px at -10% -20%, rgba(2,132,199,.15), transparent 60%),
-        radial-gradient(800px 400px at 120% 10%, rgba(34,197,94,.12), transparent 55%),
-        linear-gradient(180deg,#f6f7fb 0%,#f2f5fb 100%);
+    /* Card - glass feel */
+    .card {
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.06);
     }
+    /* Safe-area bottom spacing (iOS notch) */
+    .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px); }
   </style>
 </head>
-<body class="gradient-bg min-h-screen text-slate-100">
-  <!-- Header -->
-  <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
-    <div class="flex items-center justify-between">
+<body class="bg-elegant min-h-screen text-white">
+  <!-- App Bar (mobile-first) -->
+  <header class="sticky top-0 z-40 bg-[rgba(11,18,32,.85)] backdrop-blur-md border-b border-white/10">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <img src="/logo_header_44.png" alt="FABARO GROUP"
-             class="w-11 h-11 rounded-2xl shadow-lg object-contain bg-white/5 p-1" />
-        <div>
-          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mukemen Image Studio</h1>
-          <p class="text-slate-400 text-sm md:text-[15px]">Powered by <b>FABARO GROUP</b></p>
+        <!-- FIX logo: object-contain + aspect-square memastikan tidak terpotong -->
+        <!-- Pakai logo_full_transparent.png atau logo_icon_256.png yang ada di repo -->
+        <img src="/logo_full_transparent.png" alt="Mukemen"
+             class="w-10 h-10 aspect-square object-contain rounded-xl bg-transparent" />
+        <div class="leading-tight">
+          <h1 class="text-xl font-extrabold">Mukemen Image Studio</h1>
+          <p class="text-[12px] text-white/60">Powered by <b>FABARO GROUP</b></p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="notifBtn"  class="text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">Aktifkan Notifikasi</button>
-        <button id="installBtn" class="hidden text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">Install Aplikasi</button>
-        <button id="themeBtn"   class="text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">Mode Terang</button>
-      </div>
+      <!-- Install button (muncul hanya ketika available) -->
+      <button id="installBtn"
+        class="hidden text-[12px] px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">
+        Install
+      </button>
     </div>
   </header>
 
-  <!-- Main -->
-  <main class="max-w-6xl mx-auto px-4 pb-16">
-    <div class="grid md:grid-cols-2 gap-6">
+  <!-- Content -->
+  <main class="max-w-3xl mx-auto px-4 pt-4 pb-24">
+    <!-- Form Card -->
+    <section class="card rounded-2xl p-4 md:p-5 drop-shadow-soft">
+      <!-- Prompt -->
+      <label class="text-sm text-white/90">Prompt (deskripsi gambar)</label>
+      <textarea id="prompt" rows="4"
+        class="mt-2 w-full rounded-xl bg-white/[.04] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-mint-400/50"
+        placeholder="Contoh: Espresso Fabaro Kopi, gelas kaca berembun, lighting dramatis, ultra realistis, 8K"></textarea>
+
+      <!-- Quick presets (scrollable on mobile) -->
+      <div class="flex gap-2 overflow-x-auto mt-3 no-scrollbar">
+        <button class="qp whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">produk kopi premium, low-key lighting, studio hitam, 8K</button>
+        <button class="qp whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">logo Fabaro Kopi timbul, emboss gold, elegan</button>
+        <button class="qp whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">poster UMKM modern, neon rim light, high contrast</button>
+      </div>
+
       <!-- Controls -->
-      <section class="glass rounded-2xl p-5 md:p-6 shadow-glass border border-white/10">
-        <label class="text-sm opacity-90">Prompt (deskripsi gambar)</label>
-        <textarea id="prompt" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-brand-400/60"
-          placeholder="Contoh: Espresso Fabaro Kopi, gelas kaca berembun, lighting dramatis, ultra realistis, 8K"></textarea>
-
-        <div class="flex flex-wrap gap-2 mt-3">
-          <button class="qp px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-white/10">produk kopi premium, low-key lighting, studio background hitam, 8K</button>
-          <button class="qp px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-white/10">logo Fabaro Kopi timbul, emboss gold, latar gelap elegan</button>
-          <button class="qp px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-white/10">poster UMKM modern, neon rim light, high contrast</button>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <!-- Mode -->
+        <div>
+          <label class="text-sm text-white/90">Mode</label>
+          <select id="mode"
+            class="mt-2 w-full rounded-xl bg-white/[.04] border border-white/10 px-3 py-3 focus:ring-2 focus:ring-mint-400/50">
+            <option value="generate">Text → Image</option>
+            <option value="edit">Edit Gambar (upload)</option>
+          </select>
+        </div>
+        <!-- Model (OpenRouter tapi tidak ditampilkan tulisannya) -->
+        <div>
+          <label class="text-sm text-white/90">Model</label>
+          <select id="model"
+            class="mt-2 w-full rounded-xl bg-white/[.04] border border-white/10 px-3 py-3 focus:ring-2 focus:ring-mint-400/50">
+            <option value="auto-free">Auto (Gratis)</option>
+            <option value="google/gemini-2.5-flash-image-preview:free" selected>
+              Gemini 2.5 Flash Image (free)
+            </option>
+            <option value="google/gemini-2.5-flash-image-preview">
+              Gemini 2.5 Flash Image (paid)
+            </option>
+          </select>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-4 mt-4">
-          <!-- Mode -->
-          <div>
-            <label class="text-sm opacity-90">Mode</label>
-            <select id="mode" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
-              <option value="generate">Text → Image</option>
-              <option value="edit">Edit Gambar (upload)</option>
-            </select>
-          </div>
-          <!-- Model -->
-          <div>
-            <label class="text-sm opacity-90">Model</label>
-            <select id="model" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
-              <option value="auto-free">Auto (Gratis)</option>
-              <option value="google/gemini-2.5-flash-image-preview:free" selected>Gemini 2.5 Flash Image (free)</option>
-              <option value="google/gemini-2.5-flash-image-preview">Gemini 2.5 Flash Image (paid)</option>
-            </select>
-          </div>
+        <!-- Rasio -->
+        <div>
+          <label class="text-sm text-white/90">Rasio</label>
+          <select id="ratio"
+            class="mt-2 w-full rounded-xl bg-white/[.04] border border-white/10 px-3 py-3 focus:ring-2 focus:ring-mint-400/50">
+            <option value="1:1">1:1 (Kotak)</option>
+            <option value="16:9">16:9 (Landscape)</option>
+            <option value="9:16">9:16 (Portrait)</option>
+            <option value="4:5">4:5 (IG Post)</option>
+            <option value="3:2">3:2</option>
+            <option value="custom">Custom</option>
+          </select>
         </div>
-
-        <!-- Ukuran + Upload -->
-        <div class="grid md:grid-cols-2 gap-4 mt-4">
-          <div>
-            <label class="text-sm opacity-90">Ukuran (sisi panjang, px)</label>
-            <div class="flex gap-2 mt-2">
-              <input id="longEdge" type="number" min="512" step="64" value="1024"
-                class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
-              <div class="hidden md:flex gap-2">
-                <button class="preset px-3 py-2 text-xs rounded-lg bg-white/10 hover:bg-white/20" data-v="768">768</button>
-                <button class="preset px-3 py-2 text-xs rounded-lg bg-white/10 hover:bg-white/20" data-v="1024">1024</button>
-                <button class="preset px-3 py-2 text-xs rounded-lg bg-white/10 hover:bg-white/20" data-v="1536">1536</button>
-              </div>
-            </div>
-          </div>
-          <div>
-            <label class="text-sm opacity-90">Upload Gambar (untuk Edit)</label>
-            <div id="dropzone" class="mt-2 rounded-xl border border-dashed border-white/15 bg-slate-900/40 p-4 grid place-items-center text-center cursor-pointer hover:bg-slate-900/55 transition">
-              <input id="file" type="file" accept="image/*" class="hidden" />
-              <div class="text-slate-300/80 text-sm">
-                <div class="font-semibold mb-1">Tarik & letakkan gambar di sini</div>
-                atau <span class="underline decoration-dotted">klik untuk memilih file</span>
-                <div id="fileName" class="mt-1 text-xs opacity-70"></div>
-              </div>
+        <!-- Ukuran -->
+        <div>
+          <label class="text-sm text-white/90">Ukuran (sisi panjang)</label>
+          <div class="mt-2 flex gap-2">
+            <input id="longEdge" type="number" min="512" step="64" value="1024"
+              class="w-full rounded-xl bg-white/[.04] border border-white/10 px-3 py-3 focus:ring-2 focus:ring-mint-400/50">
+            <div class="hidden sm:flex gap-2">
+              <button class="preset px-3 py-2 text-xs rounded-lg bg-white/10" data-v="768">768</button>
+              <button class="preset px-3 py-2 text-xs rounded-lg bg-white/10" data-v="1024">1024</button>
+              <button class="preset px-3 py-2 text-xs rounded-lg bg-white/10" data-v="1536">1536</button>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Custom width/height -->
-        <div id="customWH" class="grid md:grid-cols-2 gap-4 mt-4 hidden">
-          <div>
-            <label class="text-sm opacity-90">Lebar (px)</label>
-            <input id="width" type="number" min="256" step="8" value="1024"
-              class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
-          </div>
-          <div>
-            <label class="text-sm opacity-90">Tinggi (px)</label>
-            <input id="height" type="number" min="256" step="8" value="1024"
-              class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
+      <!-- Custom width/height (auto tampil saat pilih custom) -->
+      <div id="customWH" class="grid grid-cols-2 gap-3 mt-3 hidden">
+        <div>
+          <label class="text-sm text-white/90">Lebar (px)</label>
+          <input id="width" type="number" min="256" step="8" value="1024"
+            class="mt-2 w-full rounded-xl bg-white/[.04] border border-white/10 px-3 py-3 focus:ring-2 focus:ring-mint-400/50">
+        </div>
+        <div>
+          <label class="text-sm text-white/90">Tinggi (px)</label>
+          <input id="height" type="number" min="256" step="8" value="1024"
+            class="mt-2 w-full rounded-xl bg-white/[.04] border border-white/10 px-3 py-3 focus:ring-2 focus:ring-mint-400/50">
+        </div>
+      </div>
+
+      <p id="calcOut" class="text-xs text-white/70 mt-2">Output ~ <b>1024×1024</b> (kelipatan 8)</p>
+
+      <!-- Upload (untuk Edit) -->
+      <div class="mt-4">
+        <label class="text-sm text-white/90">Upload Gambar (untuk Edit)</label>
+        <div id="dropzone"
+          class="mt-2 rounded-xl border border-dashed border-white/15 bg-white/[.03] p-4 grid place-items-center text-center cursor-pointer hover:bg-white/[.06] transition">
+          <input id="file" type="file" accept="image/*" class="hidden" />
+          <div class="text-white/80 text-sm">
+            <div class="font-semibold mb-1">Tarik & lepas gambar di sini</div>
+            atau <span class="underline decoration-dotted">klik untuk memilih file</span>
+            <div id="fileName" class="mt-1 text-xs text-white/60"></div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <p id="calcOut" class="text-xs opacity-70 mt-2">Output ~ <b>1024×1024</b> (otomatis kelipatan 8)</p>
+    <!-- Hasil -->
+    <section class="card rounded-2xl p-4 md:p-5 mt-4 drop-shadow-soft">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-semibold">Hasil</h2>
+        <button id="clear" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">Bersihkan</button>
+      </div>
+      <div id="loader" class="hidden py-8 grid place-items-center">
+        <div class="w-10 h-10 border-4 border-white/20 border-t-mint-400 rounded-full animate-spin"></div>
+        <p class="text-white/80 text-sm mt-3">Memproses…</p>
+      </div>
+      <div id="out" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+    </section>
+  </main>
 
-        <div class="flex items-center gap-3 mt-5">
-          <button id="go" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-slate-900 font-bold px-5 py-3 shadow-lg hover:shadow-brand-500/30">
+  <!-- Bottom action (besar, nyaman di jempol) -->
+  <div class="fixed bottom-0 inset-x-0 z-40">
+    <div class="mx-auto max-w-3xl px-4 pb-3 safe-bottom">
+      <div class="card rounded-2xl px-3 py-2">
+        <div class="flex items-center gap-3">
+          <button id="go"
+            class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-mint-400 to-mint-600 text-ink-900 font-bold px-5 py-3">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 8-8 8-1.41-1.41L16.17 12 10.59 6.41 12 5z"/></svg>
             Buat Gambar
           </button>
-          <span id="status" class="text-sm opacity-80">Siap.</span>
+          <span id="status" class="text-[12px] text-white/80 whitespace-nowrap">Siap.</span>
         </div>
-      </section>
-
-      <!-- Preview -->
-      <section class="glass rounded-2xl p-5 md:p-6 shadow-glass border border-white/10">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-lg font-semibold">Hasil</h2>
-          <button id="clear" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">Bersihkan</button>
-        </div>
-        <div id="loader" class="hidden py-8 grid place-items-center">
-          <div class="w-12 h-12 border-4 border-white/20 border-t-brand-400 rounded-full animate-spin"></div>
-          <p class="opacity-80 text-sm mt-3">Memproses...</p>
-        </div>
-        <div id="out" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-      </section>
+      </div>
     </div>
-
-    <p class="text-center text-[12px] opacity-60 mt-6">© 2025 Mukemen.ai</p>
-  </main>
+  </div>
 
   <!-- App JS -->
   <script>
@@ -190,20 +225,10 @@
     const ratioEl = $('ratio'), longEdgeEl = $('longEdge'), widthEl = $('width'), heightEl = $('height'), customWH = $('customWH');
     const fileEl = $('file'), fileNameEl = $('fileName'), drop = $('dropzone');
     const goBtn = $('go'), statusEl = $('status'), outEl = $('out'), loader = $('loader');
-    const clearBtn = $('clear'), themeBtn = $('themeBtn'), installBtn = $('installBtn'), notifBtn = $('notifBtn');
+    const clearBtn = $('clear'), installBtn = $('installBtn'), notifBtn = $('notifBtn');
     const calcOut = $('calcOut');
 
-    // Theme toggle
-    let light = false;
-    themeBtn.addEventListener('click', ()=>{
-      light = !light;
-      document.body.classList.toggle('light', light);
-      document.body.classList.toggle('text-slate-800', light);
-      document.body.classList.toggle('text-slate-100', !light);
-      themeBtn.textContent = light ? 'Mode Gelap' : 'Mode Terang';
-    });
-
-    // Quick prompts
+    // Quick prompt fillers
     document.querySelectorAll('.qp').forEach(el=> el.addEventListener('click', ()=>{ promptEl.value = el.textContent; }));
 
     // Preset sizes
@@ -213,10 +238,10 @@
 
     // Dropzone
     drop.addEventListener('click', ()=> fileEl.click());
-    drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('ring-2','ring-brand-400/60'); });
-    drop.addEventListener('dragleave', ()=> drop.classList.remove('ring-2','ring-brand-400/60'));
+    drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('ring-2','ring-mint-400/50'); });
+    drop.addEventListener('dragleave', ()=> drop.classList.remove('ring-2','ring-mint-400/50'));
     drop.addEventListener('drop', e=>{
-      e.preventDefault(); drop.classList.remove('ring-2','ring-brand-400/60');
+      e.preventDefault(); drop.classList.remove('ring-2','ring-mint-400/50');
       if (e.dataTransfer.files?.[0]) { fileEl.files = e.dataTransfer.files; fileNameEl.textContent = e.dataTransfer.files[0].name; }
     });
     fileEl.addEventListener('change', ()=> fileNameEl.textContent = fileEl.files?.[0]?.name || '');
@@ -266,24 +291,26 @@
       });
     }
 
-    // PWA + Notifikasi
+    // PWA install + notif
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
     let deferredPrompt=null;
     window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; installBtn.classList.remove('hidden'); });
     installBtn.addEventListener('click', async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; installBtn.classList.add('hidden'); });
 
-    notifBtn.addEventListener('click', async () => {
-      if (!('Notification' in window)) return alert('Browser belum mendukung notifikasi.');
-      const perm = await Notification.requestPermission();
-      if (perm === 'granted') {
-        const reg = await navigator.serviceWorker.ready;
-        reg.showNotification('Notifikasi aktif', {
-          body: 'Kamu akan diberi tahu saat gambar selesai.',
-          icon: '/icon-192.png', badge: '/icon-192.png'
-        });
-        notifBtn.textContent = 'Notifikasi Aktif'; notifBtn.disabled = true; notifBtn.classList.add('opacity-60');
-      } else { alert('Izin notifikasi ditolak.'); }
-    });
+    if (document.getElementById('notifBtn')) {
+      notifBtn.addEventListener('click', async () => {
+        if (!('Notification' in window)) return alert('Browser belum mendukung notifikasi.');
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          const reg = await navigator.serviceWorker.ready;
+          reg.showNotification('Notifikasi aktif', {
+            body: 'Kamu akan diberi tahu saat gambar selesai.',
+            icon: '/icon-192.png', badge: '/icon-192.png'
+          });
+          notifBtn.textContent = 'Notifikasi Aktif'; notifBtn.disabled = true; notifBtn.classList.add('opacity-60');
+        } else { alert('Izin notifikasi ditolak.'); }
+      });
+    }
 
     async function notifyImageReady(firstImageUrl, count) {
       if (Notification.permission !== 'granted') return;
@@ -296,22 +323,22 @@
       });
     }
 
-    // === Buat Gambar (CLOUD saja) ===
+    // === Kirim ke backend (OpenRouter) ===
     goBtn.addEventListener('click', async ()=>{
       const prompt = promptEl.value.trim();
       const mode   = modeEl.value;
       const model  = modelEl.value;
 
       const ratio  = ratioEl.value;
-      const width  = round8(widthEl.value);
-      const height = round8(heightEl.value);
+      const width  = round8(widthEl.value || longEdgeEl.value);
+      const height = round8(heightEl.value || longEdgeEl.value);
       const file   = fileEl.files?.[0];
 
       if (!prompt) { alert('Masukkan prompt dulu.'); return; }
       if (mode === 'edit' && !file) { alert('Pilih gambar untuk mode Edit.'); return; }
 
       setLoading(true);
-      statusEl.textContent = 'Mengirim ke API…';
+      statusEl.textContent = 'Mengirim…';
       outEl.innerHTML = '';
 
       try {
@@ -332,16 +359,16 @@
 
         urls.forEach((url, i)=>{
           const card = document.createElement('div');
-          card.className = 'rounded-xl overflow-hidden border border-white/10 bg-slate-900/40 shadow';
+          card.className = 'rounded-xl overflow-hidden border border-white/10 bg-white/[.03]';
           const img = document.createElement('img');
           img.src = url; img.alt = 'hasil'; img.className = 'w-full h-auto block';
           const tools = document.createElement('div');
           tools.className = 'p-3 flex items-center justify-between text-sm';
           tools.innerHTML = `
-            <span class="opacity-75">#${i+1} • ${width}×${height}</span>
+            <span class="text-white/75">#${i+1} • ${width}×${height}</span>
             <div class="flex gap-2">
               <a class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20" href="${url}" target="_blank" rel="noopener">Buka</a>
-              <a class="px-3 py-1.5 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-slate-900 font-semibold" href="${url}" download="mukemen-image-${i+1}.png">Unduh</a>
+              <a class="px-3 py-1.5 rounded-lg bg-gradient-to-br from-mint-400 to-mint-600 text-ink-900 font-semibold" href="${url}" download="mukemen-image-${i+1}.png">Unduh</a>
             </div>`;
           card.appendChild(img); card.appendChild(tools); outEl.appendChild(card);
         });
