@@ -1,4 +1,4 @@
-// Vercel Serverless Function
+// FILE: api/generate.js  (versi perbaikan)
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Susun konten multimodal
+    // susun konten multimodal
     const contentParts = [{ type: 'text', text: mode === 'edit' ? `Edit: ${prompt}` : prompt }];
     if (mode === 'edit' && imageDataUrl) {
       contentParts.push({ type: 'image_url', image_url: { url: imageDataUrl } });
@@ -24,13 +24,16 @@ export default async function handler(req, res) {
     const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://mukemen-image-studio.vercel.app',
         'X-Title': 'Mukemen Image Studio'
       },
       body: JSON.stringify({
         model,
+        // PENTING utk image generation menurut docs
+        // (minta output gambar + teks)
+        modalities: ['image', 'text'], // <-- kunci perbaikan
         messages: [
           { role: 'system', content: 'Anda adalah image model. Hasilkan gambar dari prompt atau edit gambar yang diberikan.' },
           { role: 'user', content: contentParts }
@@ -43,66 +46,76 @@ export default async function handler(req, res) {
       return res.status(resp.status).json({ error: json.error?.message || 'OpenRouter error', raw: json });
     }
 
-    // ==== Ekstraksi hasil gambar (beberapa provider beda format) ====
+    // === Ekstraksi hasil gambar ===
     const images = [];
 
-    function maybePush(v) {
-      if (!v) return;
-      // URL http(s) langsung
-      if (typeof v === 'string' && /^https?:\/\/.+\.(png|jpg|jpeg|webp)(\?.*)?$/i.test(v)) images.push(v);
-      // Data URL base64
-      else if (typeof v === 'string' && v.startsWith('data:image')) images.push(v);
-      // Base64 mentah → bungkus data URL (jika terdeteksi)
-      else if (typeof v === 'string' && /^[A-Za-z0-9+/=]+$/.test(v) && v.length > 200) {
-        images.push(`data:image/png;base64,${v}`);
-      }
-    }
+    // 1) Format resmi image-gen: ada di message.images (base64 data URLs)
+    //    Lihat: OpenRouter Image Generation → Response Format
+    //    https://openrouter.ai/docs/features/multimodal/image-generation
+    if (Array.isArray(json.choices)) {
+      for (const ch of json.choices) {
+        const msg = ch?.message || {};
+        // a) message.images (format utama untuk image generation)
+        if (Array.isArray(msg.images)) {
+          for (const im of msg.images) {
+            const u = im?.image_url?.url;
+            if (typeof u === 'string') images.push(u);
+          }
+        }
 
-    for (const ch of json.choices || []) {
-      const msg = ch.message || {};
-      const c = msg.content;
-
-      // Array parts (format OpenAI-style multimodal)
-      if (Array.isArray(c)) {
-        for (const part of c) {
-          if (part?.type === 'image_url') {
-            maybePush(part.image_url?.url);
-          } else if (part?.type === 'text') {
-            // Bisa jadi provider mengembalikan data:image... di teks
-            maybePush(part.text);
-            // Atau JSON bertuliskan { "image_url": "..." }
+        // b) fallback lama: konten multimodal di message.content
+        const c = msg.content;
+        if (Array.isArray(c)) {
+          for (const part of c) {
+            if (part?.type === 'image_url' && part.image_url?.url) images.push(part.image_url.url);
+            if (part?.type === 'text' && typeof part.text === 'string') {
+              if (part.text.startsWith('data:image')) images.push(part.text);
+              else {
+                try {
+                  const parsed = JSON.parse(part.text);
+                  const maybe = parsed?.image_url || parsed?.url || parsed?.data;
+                  if (typeof maybe === 'string') images.push(
+                    maybe.startsWith('data:image') ? maybe : `data:image/png;base64,${maybe}`
+                  );
+                } catch {}
+              }
+            }
+          }
+        } else if (typeof c === 'string') {
+          if (c.startsWith('data:image')) images.push(c);
+          else {
             try {
-              const parsed = JSON.parse(part.text);
-              maybePush(parsed?.image_url || parsed?.url || parsed?.data);
+              const parsed = JSON.parse(c);
+              const maybe = parsed?.image_url || parsed?.url || parsed?.data;
+              if (typeof maybe === 'string') images.push(
+                maybe.startsWith('data:image') ? maybe : `data:image/png;base64,${maybe}`
+              );
             } catch {}
           }
         }
-      }
-      // String tunggal
-      else if (typeof c === 'string') {
-        maybePush(c);
-        try {
-          const parsed = JSON.parse(c);
-          maybePush(parsed?.image_url || parsed?.url || parsed?.data);
-        } catch {}
-      }
-      // Tool calls (beberapa provider taruh di sini)
-      if (Array.isArray(msg?.tool_calls)) {
-        for (const t of msg.tool_calls) {
-          if (t?.function?.arguments) {
-            try {
-              const a = JSON.parse(t.function.arguments);
-              maybePush(a?.image_url || a?.url || a?.data);
-            } catch {}
+
+        // c) beberapa provider menyelipkan di tool_calls
+        if (Array.isArray(msg.tool_calls)) {
+          for (const t of msg.tool_calls) {
+            const args = t?.function?.arguments;
+            if (args) {
+              try {
+                const a = JSON.parse(args);
+                const maybe = a?.image_url || a?.url || a?.data;
+                if (typeof maybe === 'string') images.push(
+                  maybe.startsWith('data:image') ? maybe : `data:image/png;base64,${maybe}`
+                );
+              } catch {}
+            }
           }
         }
       }
     }
-    // ==== END ekstraksi ====
+    // === selesai ekstraksi ===
 
     if (!images.length) {
       return res.status(502).json({
-        error: 'Model tidak mengembalikan gambar. Coba ganti model (mis. Stable Diffusion 3.5) atau ulangi lagi.',
+        error: 'Model tidak mengembalikan gambar. Pastikan model mendukung output image & parameter modalities sudah dikirim.',
         raw: json
       });
     }
