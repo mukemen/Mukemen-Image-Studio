@@ -6,7 +6,10 @@ export default async function handler(req, res) {
     prompt,
     mode = 'generate',
     imageDataUrl = null,
-    model = 'google/gemini-2.5-flash-image-preview:free'
+    model = 'google/gemini-2.5-flash-image-preview:free',
+    ratio = '1:1',
+    width = 1024,
+    height = 1024
   } = req.body || {};
 
   if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
@@ -15,11 +18,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Susun konten multimodal
-    const contentParts = [{ type: 'text', text: mode === 'edit' ? `Edit: ${prompt}` : prompt }];
+    // Susun konten multimodal + hint ukuran/rasio
+    const sizeHint = `Target aspect ratio: ${ratio}, target size: ${width}x${height}.`;
+    const contentParts = [{ type: 'text', text: (mode === 'edit' ? `Edit: ` : '') + prompt + `\n\n${sizeHint}` }];
     if (mode === 'edit' && imageDataUrl) {
       contentParts.push({ type: 'image_url', image_url: { url: imageDataUrl } });
     }
+
+    // Beberapa provider menghormati "size/width/height" di body. Yang lainnya akan pakai hint teks di atas.
+    const body = {
+      model,
+      modalities: ['image','text'],
+      messages: [
+        { role: 'system', content: `Anda adalah image model. Utamakan mengembalikan gambar. Jika memungkinkan, hormati pengaturan: width=${width}, height=${height}, aspect_ratio=${ratio}.` },
+        { role: 'user', content: contentParts }
+      ],
+      // opsi yang mungkin dipakai oleh provider tertentu
+      size: `${width}x${height}`,
+      width,
+      height,
+      aspect_ratio: ratio
+    };
 
     const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -29,15 +48,7 @@ export default async function handler(req, res) {
         'HTTP-Referer': 'https://mukemen-image-studio.vercel.app',
         'X-Title': 'Mukemen Image Studio'
       },
-      body: JSON.stringify({
-        model,
-        // penting agar model mengembalikan gambar
-        modalities: ['image', 'text'],
-        messages: [
-          { role: 'system', content: 'Anda adalah image model. Hasilkan gambar dari prompt atau edit gambar yang diberikan.' },
-          { role: 'user', content: contentParts }
-        ]
-      })
+      body: JSON.stringify(body)
     });
 
     const json = await resp.json();
@@ -47,60 +58,40 @@ export default async function handler(req, res) {
 
     // ==== Ekstraksi hasil gambar (berbagai format provider) ====
     const images = [];
-
-    function pushMaybe(v) {
+    const pushMaybe = (v)=>{
       if (!v) return;
       if (typeof v === 'string' && /^https?:\/\/.+\.(png|jpg|jpeg|webp)(\?.*)?$/i.test(v)) images.push(v);
       else if (typeof v === 'string' && v.startsWith('data:image')) images.push(v);
-      else if (typeof v === 'string' && /^[A-Za-z0-9+/=]+$/.test(v) && v.length > 200) {
-        images.push(`data:image/png;base64,${v}`);
-      }
-    }
+      else if (typeof v === 'string' && /^[A-Za-z0-9+/=]+$/.test(v) && v.length > 200) images.push(`data:image/png;base64,${v}`);
+    };
 
     if (Array.isArray(json.choices)) {
       for (const ch of json.choices) {
         const msg = ch?.message || {};
 
-        // a) format resmi image-gen: message.images -> [{ image_url: { url } }]
-        if (Array.isArray(msg.images)) {
-          for (const im of msg.images) pushMaybe(im?.image_url?.url);
-        }
+        // a) format image-gen resmi
+        if (Array.isArray(msg.images)) for (const im of msg.images) pushMaybe(im?.image_url?.url);
 
-        // b) fallback: content array (multimodal style)
+        // b) fallback konten multimodal
         const c = msg.content;
         if (Array.isArray(c)) {
           for (const part of c) {
             if (part?.type === 'image_url') pushMaybe(part.image_url?.url);
             else if (part?.type === 'text' && typeof part.text === 'string') {
               if (part.text.startsWith('data:image')) pushMaybe(part.text);
-              else {
-                try {
-                  const p = JSON.parse(part.text);
-                  pushMaybe(p?.image_url || p?.url || p?.data);
-                } catch {}
-              }
+              else { try { const p = JSON.parse(part.text); pushMaybe(p?.image_url || p?.url || p?.data); } catch {} }
             }
           }
         } else if (typeof c === 'string') {
           if (c.startsWith('data:image')) pushMaybe(c);
-          else {
-            try {
-              const p = JSON.parse(c);
-              pushMaybe(p?.image_url || p?.url || p?.data);
-            } catch {}
-          }
+          else { try { const p = JSON.parse(c); pushMaybe(p?.image_url || p?.url || p?.data); } catch {} }
         }
 
-        // c) sebagian provider lewat tool_calls
+        // c) tool_calls
         if (Array.isArray(msg.tool_calls)) {
           for (const t of msg.tool_calls) {
             const args = t?.function?.arguments;
-            if (args) {
-              try {
-                const a = JSON.parse(args);
-                pushMaybe(a?.image_url || a?.url || a?.data);
-              } catch {}
-            }
+            if (args) { try { const a = JSON.parse(args); pushMaybe(a?.image_url || a?.url || a?.data); } catch {} }
           }
         }
       }
