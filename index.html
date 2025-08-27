@@ -18,7 +18,7 @@
   <meta name="twitter:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
   <meta name="twitter:image" content="/og-image.png" />
 
-  <!-- Icons / Manifest (PWA opsional) -->
+  <!-- Icons / Manifest (PWA) -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -63,7 +63,7 @@
   <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <img src="/logo_icon_256.png" alt="FABARO GROUP"
+        <img src="/logo_header_44.png" alt="FABARO GROUP"
              class="w-11 h-11 rounded-2xl shadow-lg object-contain bg-white/5 p-1" />
         <div>
           <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mukemen Image Studio</h1>
@@ -71,6 +71,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button id="notifBtn"  class="text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">Aktifkan Notifikasi</button>
         <button id="installBtn" class="hidden text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">Install Aplikasi</button>
         <button id="themeBtn"   class="text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">Mode Terang</button>
       </div>
@@ -93,14 +94,6 @@
         </div>
 
         <div class="grid md:grid-cols-2 gap-4 mt-4">
-          <!-- Engine -->
-          <div>
-            <label class="text-sm opacity-90">Engine</label>
-            <select id="engine" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
-              <option value="local">Local (WebGPU — GRATIS)</option>
-              <option value="cloud" selected>Cloud (OpenRouter)</option>
-            </select>
-          </div>
           <!-- Mode -->
           <div>
             <label class="text-sm opacity-90">Mode</label>
@@ -109,33 +102,13 @@
               <option value="edit">Edit Gambar (upload)</option>
             </select>
           </div>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-4 mt-4">
-          <!-- (2a) MODEL (Cloud) -->
+          <!-- Model -->
           <div>
-            <label class="text-sm opacity-90">Model (Cloud)</label>
-            <select id="model"
-              class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
+            <label class="text-sm opacity-90">Model</label>
+            <select id="model" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
               <option value="auto-free">Auto (Gratis)</option>
-              <option value="google/gemini-2.5-flash-image-preview:free" selected>
-                Gemini 2.5 Flash Image (free)
-              </option>
-              <option value="google/gemini-2.5-flash-image-preview">
-                Gemini 2.5 Flash Image (paid)
-              </option>
-            </select>
-          </div>
-          <!-- Rasio -->
-          <div>
-            <label class="text-sm opacity-90">Rasio</label>
-            <select id="ratio" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3">
-              <option value="1:1">1:1 (Kotak)</option>
-              <option value="16:9">16:9 (Landscape)</option>
-              <option value="9:16">9:16 (Portrait)</option>
-              <option value="4:5">4:5 (IG Post)</option>
-              <option value="3:2">3:2</option>
-              <option value="custom">Custom</option>
+              <option value="google/gemini-2.5-flash-image-preview:free" selected>Gemini 2.5 Flash Image (free)</option>
+              <option value="google/gemini-2.5-flash-image-preview">Gemini 2.5 Flash Image (paid)</option>
             </select>
           </div>
         </div>
@@ -213,11 +186,11 @@
   <script>
     const $ = (id)=>document.getElementById(id);
 
-    const promptEl = $('prompt'), modeEl = $('mode'), modelEl = $('model'), engineEl = $('engine');
+    const promptEl = $('prompt'), modeEl = $('mode'), modelEl = $('model');
     const ratioEl = $('ratio'), longEdgeEl = $('longEdge'), widthEl = $('width'), heightEl = $('height'), customWH = $('customWH');
     const fileEl = $('file'), fileNameEl = $('fileName'), drop = $('dropzone');
     const goBtn = $('go'), statusEl = $('status'), outEl = $('out'), loader = $('loader');
-    const clearBtn = $('clear'), themeBtn = $('themeBtn'), installBtn = $('installBtn');
+    const clearBtn = $('clear'), themeBtn = $('themeBtn'), installBtn = $('installBtn'), notifBtn = $('notifBtn');
     const calcOut = $('calcOut');
 
     // Theme toggle
@@ -293,27 +266,41 @@
       });
     }
 
-    // PWA (opsional)
+    // PWA + Notifikasi
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
     let deferredPrompt=null;
     window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; installBtn.classList.remove('hidden'); });
     installBtn.addEventListener('click', async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; installBtn.classList.add('hidden'); });
 
-    // Sinkron UI engine (disable edit saat local)
-    function syncEngineUI(){
-      const eng = engineEl.value;
-      modeEl.querySelector('option[value="edit"]').disabled = (eng === 'local');
-      if (eng === 'local' && modeEl.value === 'edit') modeEl.value = 'generate';
-      modelEl.disabled = (eng === 'local'); // model hanya untuk cloud
-    }
-    engineEl.addEventListener('change', syncEngineUI); syncEngineUI();
+    notifBtn.addEventListener('click', async () => {
+      if (!('Notification' in window)) return alert('Browser belum mendukung notifikasi.');
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification('Notifikasi aktif', {
+          body: 'Kamu akan diberi tahu saat gambar selesai.',
+          icon: '/icon-192.png', badge: '/icon-192.png'
+        });
+        notifBtn.textContent = 'Notifikasi Aktif'; notifBtn.disabled = true; notifBtn.classList.add('opacity-60');
+      } else { alert('Izin notifikasi ditolak.'); }
+    });
 
-    // ===== (2b) BUAT GAMBAR — fallback Local → Cloud =====
+    async function notifyImageReady(firstImageUrl, count) {
+      if (Notification.permission !== 'granted') return;
+      const reg = await navigator.serviceWorker.ready;
+      reg.showNotification('Gambar siap', {
+        body: `Berhasil membuat ${count} gambar.`,
+        icon: '/icon-192.png', badge: '/icon-192.png',
+        image: firstImageUrl, data: { url: firstImageUrl },
+        actions: [{ action: 'open', title: 'Buka hasil' }]
+      });
+    }
+
+    // === Buat Gambar (CLOUD saja) ===
     goBtn.addEventListener('click', async ()=>{
       const prompt = promptEl.value.trim();
       const mode   = modeEl.value;
       const model  = modelEl.value;
-      const engine = engineEl.value;
 
       const ratio  = ratioEl.value;
       const width  = round8(widthEl.value);
@@ -321,49 +308,28 @@
       const file   = fileEl.files?.[0];
 
       if (!prompt) { alert('Masukkan prompt dulu.'); return; }
-      if (engine === 'local' && mode === 'edit') { alert('Edit belum didukung di mode Lokal. Pilih Cloud.'); return; }
-      if (engine === 'cloud' && mode === 'edit' && !file) { alert('Pilih gambar untuk mode Edit.'); return; }
+      if (mode === 'edit' && !file) { alert('Pilih gambar untuk mode Edit.'); return; }
 
       setLoading(true);
+      statusEl.textContent = 'Mengirim ke API…';
       outEl.innerHTML = '';
 
-      // Helper: panggil backend Cloud (OpenRouter)
-      const runCloud = async ()=>{
-        statusEl.textContent = 'Mengirim ke API (Cloud)…';
+      try {
         let imageDataUrl = null;
         if (mode === 'edit' && file) imageDataUrl = await readAsDataURL(file);
+
         const resp = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt, mode, imageDataUrl, model, ratio, width, height })
         });
         const data = await resp.json();
-        if (!resp.ok) throw new Error(data.error || 'Cloud error');
-        return data.images || [];
-      };
 
-      try {
-        let urls = [];
+        if (!resp.ok) throw new Error(data.error || 'Error');
 
-        if (engine === 'local') {
-          // coba Local (WebGPU) → jika gagal, otomatis pindah ke Cloud (Gratis)
-          try {
-            statusEl.textContent = 'Menjalankan lokal (WebGPU)…';
-            const safeW = Math.min(768, width);
-            const safeH = Math.min(768, height);
-            const Local = await import('/local.js');
-            if (!(await Local.isWebGPUAvailable())) throw new Error('Perangkat ini tidak mendukung WebGPU.');
-            urls = await Local.generateLocal(prompt, safeW, safeH, statusEl);
-          } catch (err) {
-            statusEl.textContent = 'Lokal gagal, beralih ke Cloud (Gratis)…';
-            urls = await runCloud();
-          }
-        } else {
-          // langsung Cloud
-          urls = await runCloud();
-        }
-
+        const urls = data.images || [];
         statusEl.textContent = 'Sukses: ' + (urls.length || 0) + ' gambar';
+
         urls.forEach((url, i)=>{
           const card = document.createElement('div');
           card.className = 'rounded-xl overflow-hidden border border-white/10 bg-slate-900/40 shadow';
@@ -372,7 +338,7 @@
           const tools = document.createElement('div');
           tools.className = 'p-3 flex items-center justify-between text-sm';
           tools.innerHTML = `
-            <span class="opacity-75">#${i+1} • ${width}×${height} • ${engine}</span>
+            <span class="opacity-75">#${i+1} • ${width}×${height}</span>
             <div class="flex gap-2">
               <a class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20" href="${url}" target="_blank" rel="noopener">Buka</a>
               <a class="px-3 py-1.5 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-slate-900 font-semibold" href="${url}" download="mukemen-image-${i+1}.png">Unduh</a>
@@ -380,10 +346,7 @@
           card.appendChild(img); card.appendChild(tools); outEl.appendChild(card);
         });
 
-        // Notif PWA (kalau ada fungsi notifyImageReady di project-mu)
-        if (urls.length && typeof notifyImageReady === 'function') {
-          notifyImageReady(urls[0], urls.length);
-        }
+        if (urls.length) notifyImageReady(urls[0], urls.length);
       } catch (e) {
         statusEl.textContent = 'Gagal: ' + e.message;
       } finally {
