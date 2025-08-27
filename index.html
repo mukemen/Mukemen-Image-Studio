@@ -5,19 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mukemen Image Studio</title>
 
-  <!-- Deskripsi & Preview Link (tanpa 'via OpenRouter') -->
+  <!-- Deskripsi & Preview Link -->
   <meta name="description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Mukemen Image Studio" />
   <meta property="og:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
-  <meta property="og:image" content="/logo.png" />
+  <meta property="og:image" content="/og-image.png" />
   <meta property="og:url" content="https://mukemen-image-studio.vercel.app/" />
   <meta property="og:site_name" content="Mukemen Image Studio" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Mukemen Image Studio" />
   <meta name="twitter:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
-  <meta name="twitter:image" content="/logo.png" />
-  <link rel="icon" type="image/png" href="/logo.png" />
+  <meta name="twitter:image" content="/og-image.png" />
+
+  <!-- Favicon / PWA icons -->
+  <link rel="icon" type="image/png" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
   <!-- Tailwind CDN + Inter font -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -55,8 +58,9 @@
   <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <!-- Ganti src='/logo.png' dengan logomu -->
-        <img src="/logo.png" alt="FABARO GROUP" class="w-11 h-11 rounded-2xl shadow-lg object-contain bg-white/5 p-1" />
+        <!-- Pakai logo_header_44.png dari paket -->
+        <img src="/logo_header_44.png" alt="FABARO GROUP"
+             class="w-11 h-11 rounded-2xl shadow-lg object-contain bg-white/5 p-1" />
         <div>
           <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mukemen Image Studio</h1>
           <p class="text-slate-400 text-sm md:text-[15px]">Powered by <b>FABARO GROUP</b></p>
@@ -104,7 +108,7 @@
           </div>
         </div>
 
-        <!-- Ratio & size -->
+        <!-- Rasio & Ukuran -->
         <div class="grid md:grid-cols-2 gap-4 mt-4">
           <div>
             <label class="text-sm opacity-90">Rasio</label>
@@ -209,7 +213,7 @@
       themeBtn.textContent = light ? 'Mode Gelap' : 'Mode Terang';
     });
 
-    // Quick prompt chips
+    // Quick prompts
     document.querySelectorAll('.qp').forEach(el=>{
       el.addEventListener('click', ()=>{ promptEl.value = el.textContent; });
     });
@@ -256,7 +260,7 @@
     ratioEl.addEventListener('change', updateDims);
     longEdgeEl.addEventListener('input', updateDims);
     widthEl.addEventListener('input', ()=> calcOut.innerHTML = `Output ~ <b>${round8(widthEl.value)}×${round8(heightEl.value)}</b>`);
-    heightEl.addEventListener('input', ()=> calcOut.innerHTML = `Output ~ <b>${round8(heightEl.value)}×${round8(heightEl.value)}</b>`); // harmless display tweak
+    heightEl.addEventListener('input', ()=> calcOut.innerHTML = `Output ~ <b>${round8(widthEl.value)}×${round8(heightEl.value)}</b>`);
     updateDims();
 
     function setLoading(v){ loader.classList.toggle('hidden', !v); goBtn.disabled = v; goBtn.classList.toggle('opacity-60', v); }
