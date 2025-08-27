@@ -5,24 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mukemen Image Studio</title>
 
-  <!-- Deskripsi & Preview Link -->
+  <!-- Deskripsi & Preview (tanpa 'via OpenRouter') -->
   <meta name="description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Mukemen Image Studio" />
   <meta property="og:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
-  <meta property="og:image" content="/og-image.png" />
+  <meta property="og:image" content="/logo_icon_1024.png" />
   <meta property="og:url" content="https://mukemen-image-studio.vercel.app/" />
   <meta property="og:site_name" content="Mukemen Image Studio" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Mukemen Image Studio" />
   <meta name="twitter:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
-  <meta name="twitter:image" content="/og-image.png" />
+  <meta name="twitter:image" content="/logo_icon_1024.png" />
 
-  <!-- Favicon / PWA icons -->
-  <link rel="icon" type="image/png" href="/favicon-32.png" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
 
-  <!-- Tailwind CDN + Inter font -->
+  <!-- Tailwind + Font -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <script>
@@ -30,7 +30,7 @@
       darkMode: ['class'],
       theme: {
         extend: {
-          fontFamily: { inter: ['Inter', 'ui-sans-serif', 'system-ui'] },
+          fontFamily: { inter: ['Inter','ui-sans-serif','system-ui'] },
           colors: { brand: { 400:'#22d3ee',500:'#06b6d4',600:'#0891b2' } },
           boxShadow: { glass: '0 8px 30px rgba(0,0,0,.35)' }
         }
@@ -39,17 +39,19 @@
   </script>
   <style>
     body { font-family: Inter, system-ui, Arial, sans-serif; }
-    .glass { backdrop-filter: blur(12px); background: rgba(17, 25, 40, 0.6); }
-    .gradient-bg { background:
-      radial-gradient(1200px 600px at -10% -20%, rgba(34,211,238,.25), transparent 60%),
-      radial-gradient(1000px 500px at 120% 10%, rgba(6,182,212,.25), transparent 55%),
-      linear-gradient(180deg, #0a0d12 0%, #0b0e14 60%, #0c1017 100%);
+    .glass { backdrop-filter: blur(12px); background: rgba(17,25,40,.6); }
+    .gradient-bg {
+      background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(34,211,238,.25), transparent 60%),
+        radial-gradient(1000px 500px at 120% 10%, rgba(6,182,212,.25), transparent 55%),
+        linear-gradient(180deg,#0a0d12 0%,#0b0e14 60%,#0c1017 100%);
     }
-    .light .glass { background: rgba(255,255,255,0.65); }
-    .light.gradient-bg { background:
-      radial-gradient(900px 450px at -10% -20%, rgba(2,132,199,.15), transparent 60%),
-      radial-gradient(800px 400px at 120% 10%, rgba(34,197,94,.12), transparent 55%),
-      linear-gradient(180deg, #f6f7fb 0%, #f2f5fb 100%);
+    .light .glass { background: rgba(255,255,255,.65); }
+    .light.gradient-bg {
+      background:
+        radial-gradient(900px 450px at -10% -20%, rgba(2,132,199,.15), transparent 60%),
+        radial-gradient(800px 400px at 120% 10%, rgba(34,197,94,.12), transparent 55%),
+        linear-gradient(180deg,#f6f7fb 0%,#f2f5fb 100%);
     }
   </style>
 </head>
@@ -58,15 +60,14 @@
   <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <!-- Pakai logo_header_44.png dari paket -->
-        <img src="/logo_header_44.png" alt="FABARO GROUP"
+        <!-- Pakai file yang ada di repo -->
+        <img src="/logo_icon_256.png" alt="FABARO GROUP"
              class="w-11 h-11 rounded-2xl shadow-lg object-contain bg-white/5 p-1" />
         <div>
           <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mukemen Image Studio</h1>
           <p class="text-slate-400 text-sm md:text-[15px]">Powered by <b>FABARO GROUP</b></p>
         </div>
       </div>
-      <!-- Theme toggle -->
       <button id="themeBtn"
         class="text-xs px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 transition">
         Mode Terang
@@ -77,7 +78,7 @@
   <!-- Main -->
   <main class="max-w-6xl mx-auto px-4 pb-16">
     <div class="grid md:grid-cols-2 gap-6">
-      <!-- Left: Controls -->
+      <!-- Controls -->
       <section class="glass rounded-2xl p-5 md:p-6 shadow-glass border border-white/10">
         <label class="text-sm opacity-90">Prompt (deskripsi gambar)</label>
         <textarea id="prompt" class="mt-2 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-brand-400/60"
@@ -135,7 +136,7 @@
           </div>
         </div>
 
-        <!-- Custom width/height -->
+        <!-- Custom Width/Height -->
         <div id="customWH" class="grid md:grid-cols-2 gap-4 mt-4 hidden">
           <div>
             <label class="text-sm opacity-90">Lebar (px)</label>
@@ -173,7 +174,7 @@
         </div>
       </section>
 
-      <!-- Right: Preview -->
+      <!-- Preview -->
       <section class="glass rounded-2xl p-5 md:p-6 shadow-glass border border-white/10">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-lg font-semibold">Hasil</h2>
@@ -252,7 +253,7 @@
       customWH.classList.add('hidden');
       const {a,b} = parseRatio(r);
       let w, h;
-      if (a>=b){ w = L; h = Math.round(L * b / a); } else { h = L; w = Math.round(L * a / b); }
+      if (a >= b) { w = L; h = Math.round(L * b / a); } else { h = L; w = Math.round(L * a / b); }
       w = round8(w); h = round8(h);
       widthEl.value = w; heightEl.value = h;
       calcOut.innerHTML = `Output ~ <b>${w}×${h}</b> (rasio ${r})`;
