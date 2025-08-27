@@ -4,7 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mukemen Image Studio</title>
-  <meta name="description" content="Text-to-Image & Edit Gambar" />
+
+  <!-- Deskripsi & Preview Link (tanpa 'via OpenRouter') -->
+  <meta name="description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Mukemen Image Studio" />
+  <meta property="og:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
+  <meta property="og:image" content="/logo.png" />
+  <meta property="og:url" content="https://mukemen-image-studio.vercel.app/" />
+  <meta property="og:site_name" content="Mukemen Image Studio" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mukemen Image Studio" />
+  <meta name="twitter:description" content="Text-to-Image & Edit Gambar — Powered by FABARO GROUP" />
+  <meta name="twitter:image" content="/logo.png" />
+  <link rel="icon" type="image/png" href="/logo.png" />
 
   <!-- Tailwind CDN + Inter font -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -42,7 +55,8 @@
   <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center font-extrabold text-slate-900 shadow-lg">MK</div>
+        <!-- Ganti src='/logo.png' dengan logomu -->
+        <img src="/logo.png" alt="FABARO GROUP" class="w-11 h-11 rounded-2xl shadow-lg object-contain bg-white/5 p-1" />
         <div>
           <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mukemen Image Studio</h1>
           <p class="text-slate-400 text-sm md:text-[15px]">Powered by <b>FABARO GROUP</b></p>
@@ -242,7 +256,7 @@
     ratioEl.addEventListener('change', updateDims);
     longEdgeEl.addEventListener('input', updateDims);
     widthEl.addEventListener('input', ()=> calcOut.innerHTML = `Output ~ <b>${round8(widthEl.value)}×${round8(heightEl.value)}</b>`);
-    heightEl.addEventListener('input', ()=> calcOut.innerHTML = `Output ~ <b>${round8(widthEl.value)}×${round8(heightEl.value)}</b>`);
+    heightEl.addEventListener('input', ()=> calcOut.innerHTML = `Output ~ <b>${round8(heightEl.value)}×${round8(heightEl.value)}</b>`); // harmless display tweak
     updateDims();
 
     function setLoading(v){ loader.classList.toggle('hidden', !v); goBtn.disabled = v; goBtn.classList.toggle('opacity-60', v); }
